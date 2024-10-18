@@ -21,6 +21,7 @@
   - 홈 디렉터리에서 sh를 실행했는데, app.py의 루트 디렉터리가 아니어서 app.py의 모든 상대경로가 깨짐
   - sh에서 cd 명령어를 사용해서 워킹 디렉터리를 변경할 수 있음!
 - slack message 까지 추가 완료
+
 ### action script
 - environment secrets랑 repository secrets랑 다름
     - repository secrets는 그냥 바로 접근 가능한데, environment secrets는 environment: {environment 이름} 이거를 선언해줘야 함
