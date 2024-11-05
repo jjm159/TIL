@@ -144,3 +144,104 @@ timer_init (void) {
 	- 애초에 sleep list가 정렬되어 있으면 tick 마다 한 번만 확인하면 됨
 
 ## Try~~!!!
+
+#### busy wait 철거
+
+- 철거
+	- while문을 제거하고 thread_sleep을 호출
+	```c
+	void
+	timer_sleep (int64_t ticks) {
+		int64_t start = timer_ticks ();
+		int64_t awake_time = start + ticks;
+
+		ASSERT (intr_get_level () == INTR_ON);
+
+		thread_sleep(awake_time);
+	}
+	```
+
+- thread_sleep
+	```c
+	void 
+	thread_sleep(int64_t awake_ticks)
+	{	
+		struct thread *curr = thread_current ();
+
+		enum intr_level old_level;
+
+		ASSERT (!intr_context ());
+
+		old_level = intr_disable ();
+
+		curr->awake_ticks = awake_ticks;
+		list_insert_ordered (&sleep_list, &curr->elem, less_awake_time_thread, NULL);
+
+		if (curr != idle_thread) {
+			thread_block ();
+		}
+
+		intr_set_level (old_level);
+	}
+
+	bool less_awake_time_thread(const struct list_elem *a,
+								const struct list_elem *b,
+								void *aux)
+	{
+		struct thread *a_thread = list_entry (a, struct thread, elem);
+		struct thread *b_thread = list_entry (b, struct thread, elem);
+		return a_thread->awake_ticks < b_thread->awake_ticks;
+	}
+	```
+	- thread를 sleep list에 추가해준다.
+		- 이 때 삽입 정렬을 통해 가장 빠르게 깨어날 수 있는 스레드를 앞에 놓는다.
+	- thread의 깨어날 시간을 thread에 함께 저장해준다.
+		- 이를 위해 thread 구조체에 awake_ticks를 추가해준다.
+	- thread는 block 처리를 해준다.
+
+#### sleep에서 깨우기
+
+- timer_interrupt에서 sleep 깨우기 
+	- 매 tick마다 확인해서, 깨울 수 있는 스레드를 sleep_list에서 제거하고 ready_list에 추가한다.
+	```c
+	static void
+	timer_interrupt (struct intr_frame *args UNUSED) {
+		ticks++;
+		thread_tick ();
+		awaken_sleep_thread (ticks);
+	}
+	```
+- 깨우기
+	- 잠자고 있는 스레드가 깨어날 시간에 도달했을 때, pop해준다.
+	- 이 때 pop 가능한 모든 스레드를 pop해주기 위해 while 문을 사용한다.
+	- 시간으로 오름차순 정렬했기 때문에, pop할 수 없는 스레드를 만났을 때 break로 while문을 종료한다.
+	```c
+	void
+	awaken_sleep_thread (int64_t current_ticks) {
+
+		bool is_empty = list_empty(&sleep_list);
+
+		if (is_empty) {
+			return;	
+		}
+
+		struct thread *first = list_entry (list_front (&sleep_list), struct thread, elem);
+
+		if (first->awake_ticks > current_ticks) {
+			return;
+		}
+
+		while (!list_empty(&sleep_list))
+		{
+			first = list_entry (list_front (&sleep_list), struct thread, elem);
+			if (first->awake_ticks <= current_ticks)
+			{
+				list_pop_front (&sleep_list);
+				thread_unblock(first);
+			} else {
+				break;
+			}
+		}
+	}
+
+	```
