@@ -84,6 +84,8 @@
 - 공식 설명
     - `recent_cpu`
         - cpu time의 추정값 that 스레드가 최근에 사용한!
+        - 이 값이 높을 수록 우선순위가 낮아진다.
+        - cpu를 덜 사용하는 녀석을 빠르게 실행하고 끝내는게 모든 스레드에 대한 반응 속도를 높이는 길!
     - `nice`
         - thread가 가지고 있는 nice value
     - result
@@ -112,6 +114,16 @@
     - averaged가 되는 함수
 - k > 0 
     - decay를 제어
+- recent_cpu는 타이머 인터럽트가 발생할 때 마다 1씩 증가 (idle 제외)
+- 공식
+    ```
+    recent_cpu = (2 * load_avg)/(2 * load_avg + 1) * recent_cpu + nice
+    ```
+    - 매 초마다 이 공식으로 계산
+- load_av정
+    - 실행 대기 중인 스레드 수의 이동 평균
+    - 스레드가 최근에 받은 cpu 시간의 양 추정
+    - cpu를 경쟁하는 스레드 수에 반비례하여 감소
 
 
 ### Calculating `load_avg`
