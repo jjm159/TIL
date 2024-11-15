@@ -84,37 +84,40 @@ load (const char *file_name, struct intr_frame *if_)
 - load에서는 실행 인자로 받은 데이터들을 함수 스택에 세팅해주는 역할도 함께 수행한다.
 - 이게 구현해야 하는 내용이고, 구현 결과는 다음과 같다.
 ```c
-static void argument_stack(char **argv, int argc, struct intr_frame *if_) 
+static void argument_stack(char **parse, int count, void **rsp)
 {
-    char *arg_addr[100];
-    int argv_len;
-
-    // argv의 인자들을 역순으로 스택에 저장 (right to left) 
-    for (int i = argc - 1; i >= 0; i--) {
-        argv_len = strlen(argv[i]) + 1;
-        if_->rsp -= argv_len;
-        memcpy(if_->rsp, argv[i], argv_len);
-        arg_addr[i] = if_->rsp;
+    // 프로그램 이름, 인자 문자열 push
+    for (int i = count - 1; i > -1; i--)
+    {
+        for (int j = strlen(parse[i]); j > -1; j--)
+        {
+            (*rsp)--;                      // 스택 주소 감소
+            **(char **)rsp = parse[i][j]; // 주소에 문자 저장
+        }
+        parse[i] = *(char **)rsp; // parse[i]에 현재 rsp의 값 저장해둠(지금 저장한 인자가 시작하는 주소값)
     }
 
-    // rsp가 8의 배수가 되도록 0으로 패딩을 추가
-    while (if_->rsp % 8)
-        *(uint8_t *)(--if_->rsp) = 0;
-
-    // argv[argc]에 NULL 포인터 설정
-    if_->rsp -= 8;
-    memset(if_->rsp, 0, sizeof(char *));
-
-    // argv 각 인자의 주소를 역순으로 저장
-    for (int i = argc - 1; i >= 0; i--) {
-        if_->rsp -= 8;
-        memcpy(if_->rsp, &arg_addr[i], sizeof(char *));
+    // 정렬 패딩 push
+    int padding = (int)*rsp % 8;
+    for (int i = 0; i < padding; i++)
+    {
+        (*rsp)--;
+        **(uint8_t **)rsp = 0; // rsp 직전까지 값 채움
     }
 
-    // return할 address 설정
-    if_->rsp = if_->rsp - 8;
-    memset(if_->rsp, 0, sizeof(void *));
-    if_->R.rdi = argc;
-    if_->R.rsi = if_->rsp + 8;
+    // 인자 문자열 종료를 나타내는 0 push
+    (*rsp) -= 8;
+    **(char ***)rsp = 0; // char* 타입의 0 추가
+
+    // 각 인자 문자열의 주소 push
+    for (int i = count - 1; i > -1; i--)
+    {
+        (*rsp) -= 8; // 다음 주소로 이동
+        **(char ***)rsp = parse[i]; // char* 타입의 주소 추가
+    }
+
+    // return address push
+    (*rsp) -= 8;
+    **(void ***)rsp = 0; // void* 타입의 0 추가
 }
 ```
