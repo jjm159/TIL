@@ -187,3 +187,6 @@ public void endGame(String podName) {
     - 생성된 서버의 정보를 클라이언트에게 제공
 3. 실제 사용
     - 게임 시작 시 서버가 자동으로 생성되고, 게임 종료 시 리소스가 정리
+
+## 참고
+- [k8s api java client](https://github.com/jjm159/TIL/blob/main/%EC%9D%B8%ED%94%84%EB%9D%BC/k8s_%EC%84%9C%EB%B2%84%EB%8F%99%EC%A0%81%EC%83%9D%EC%84%B1%ED%95%98%EA%B8%B0.md)
