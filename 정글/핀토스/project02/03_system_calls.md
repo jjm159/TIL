@@ -36,7 +36,7 @@
         movabs $syscall_handler, %r12
         call *%r12
     ```
-- 어셈블리에서 호출된다.
+- `syscall-entry.S` 어셈블리 코드에서 호출된다.
 
 ### 그럼 syscall_entry는 어디서 호출되는가?
 - syscall_init에서 syscall_init를 msr에 등록
@@ -51,6 +51,14 @@ syscall_init (void) {
 - 인터럽트 같은 동작을 제어하기 위해 cpu에 해당 주소를 등록해줘야 하는데, 이 주소를 등록하는 레지스터가 cpu 모델에 의존적
 - 이 함수는 x86 아키텍처의 시스템 콜 레지스터 등록 프로토콜에 따라 syscall_entry 함수 포인터를 해당 레지스터에 등록하는 과정
 - 시스템 콜은 이렇게 entry를 os가 등록해주고, cpu가 특정 시스템 콜 호출시 이 주소로 syscall_entry를 실행하게 됨
+
+### 인터럽트랑은 다른 것인가?
+- 전통적인 방식으로는 인터럽트 벡터에 syscall을 등록해서 사용
+- x86-64에서는 더 효율적인 system call 메커니즘인 syscall/sysret 명령어 도입
+- 인터럽트 벡터를 사용하지 않고, MSR을 사용해서 시스템콜 핸들러를 직접 지정
+- 장점
+    - 기존 인터럽트 벡터를 사용하는 방식보다 명령어 사이클이 적게 소요
+    - 소프트웨어 인터럽트를 사용하지 않아, 시스템 콜 처리와 하드웨어 인터럽트 처리가 명확히 분리
 
 ### user의 system call과 핀토스의 system call은 다른 것!
 - 우리가 구현하는건 user 프로그램의 system call
