@@ -117,6 +117,11 @@ public class GameManagerService {
         // Pod 이름 생성
         String podName = "game-server-" + System.currentTimeMillis();
 
+        // 이렇게 시간으로 하거나, 또는 room 이름을 사용해도 될 듯!
+        // 이걸 label로 사용해서 service랑 pod에 적용
+        
+        // ingress 규칙으로 path로 서버 구분 가능하지 않을까?
+
         // Pod 생성
         kubernetesClient.pods().createNew()
             .withNewMetadata()
@@ -190,3 +195,5 @@ public void endGame(String podName) {
 
 ## 참고
 - [k8s api java client](https://github.com/jjm159/TIL/blob/main/%EC%9D%B8%ED%94%84%EB%9D%BC/k8s_%EC%84%9C%EB%B2%84%EB%8F%99%EC%A0%81%EC%83%9D%EC%84%B1%ED%95%98%EA%B8%B0.md)
+
+---
