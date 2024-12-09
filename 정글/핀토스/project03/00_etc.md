@@ -70,3 +70,28 @@
 - 이게 kva의 정체
 - frame에 할당되는 물리 메모리의 주소가 kva로 이름이 붙여진 이유는,
 - 커널 주소 공간에서 관리되는 물리 메모리에 접근하려면, 커널의 주소 공간의 주소를 알고 있어야 하기 때문
+
+## 스택이 쌓이는 방향
+- 스택이 쌓이는 방향이 반대
+- 새로운 데이터를 할당하기 전에 stack bottom을 빼서 옮겨줘야 함
+```c
+static bool
+setup_stack (struct intr_frame *if_) {
+	bool success = false;
+
+	// 스택의 쌓이는 방향은 반대
+	// 낮은 주소로 먼저 bottom을 옮겨서, bottom에 page를 할당
+	// 할당하고 옮기는게 아니라 먼저 옮기고 할당해야 함!!!
+	void *stack_bottom = (void *) (((uint8_t *) USER_STACK) - PGSIZE);
+```
+
+---
+
+# 트러블 슈팅
+
+## static
+```c
+static struct lock filesys_lock;
+```
+- syscall.h에서 static으로 선언하여 process.c에서 잘못 접근 됨
+- 컴파일 오류가 나지 않고 쓰레기 값이 할당되어 무한 대기 문제 발생
