@@ -14,7 +14,7 @@
 - port만 정의하면, targetPort는 기본적으로 port와 동일한 값을 사용
 - Service의 포트와 Container의 포트가 같은 경우 targetPort를 생략할 수 있음
 
-## yaml에서 - 는?
+## yaml에서 '-' 는?
 - 리스트 형식의 데이터를 표현할 때 각 항목 앞에 -를 붙임
 ```yaml
 ports:

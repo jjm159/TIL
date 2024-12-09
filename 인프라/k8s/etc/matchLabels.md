@@ -45,12 +45,13 @@ spec:
 - 이 버전에 따라 selector도 다르게 사용되는 것
 
 ## 꼭 mtchLabels(또는 matchExpressions)를 적어야 하고, 꼭 적지 말아야 한다.
-- `App API Group(apps/v1)`에서의 selector
-    - 꼭 matchLabels 또는 matchExpressions와 같은 구조를 통해 label selector를 정의해야 함
-    - 단순 라벨 매칭인 경우 matchLabels를 사용
-- `Core API Group(v1)`에서의 selector
-    - `matchLabels`이나 `matchExpressions`을 지원하지 않음
-    - 그래서 바로 label을 적음
+- `App API Group(apps/v1)` vs `Core API Group(v1)`
+    - `App API Group(apps/v1)`에서의 selector
+        - 꼭 `matchLabels` 또는 `matchExpressions`와 같은 구조를 통해 label selector를 정의해야 함
+        - 단순 라벨 매칭인 경우 `matchLabels`를 사용
+    - `Core API Group(v1)`에서의 selector
+        - `matchLabels`이나 `matchExpressions`을 __지원하지 않음__
+        - 그래서 바로 label을 적음
 - `App API Group(apps/v1)`에서는 라벨 셀렉터 구조를 더 정교하게 다룰 수 있게 설계
     - matchLabels이나 matchExpressions을 통해 라벨 매칭 방식을 확장
     - 그래서 반드시 적어야 하고, 
