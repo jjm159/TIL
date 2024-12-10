@@ -2,11 +2,11 @@
 - k8s는 컨테이너로 애플리케이션을 실행하지만, 직접 컨테이너를 다루지 않음
 - 모든 컨테이너는 Pod에 속함
 - Pod
-    - k8s가 컨테이너를 관리하는 데 사용하는 단위
+    - k8s가 `컨테이너`를 관리하는 데 사용하는 `단위`
     - 컨테이너의 세부사항을 `추상화`
 - 이런 방법으로 `자기수복형(self-healing)` 애플리케이션이나, `바람직한 상태(desired-state)` 워크플로가 가능해짐
-- 파드는 디플로이먼트(deployment)로 관리될 수 있음
-- 그리고 `명령행 도구`와 `YAML 정의 파일`로 애플리케이션을 정의하고 관리할 수 있음
+- 파드는 `디플로이먼트(deployment)`로 `관리`될 수 있음
+- 그리고 `명령행 도구`와 `YAML 정의 파일`로 애플리케이션을 `정의`하고 `관리`할 수 있음
 
 ## 1. 쿠버네티스는 어떻게 컨테이너를 `실행`하고 `관리`하는가
 - __컨테이너__
@@ -69,6 +69,7 @@
 - 뭐가 좋은데? 
     - 형상 관리 도구를 통해 버전 관리 가능
     - 다른 쿠버네티스 클러스터로 옮기더라도 동일한 배포 가능
+    - 주석을 쓸 수 있는 것도 굳! - json은 주석을 못 씀
 - 단일 파드 정의
     ```yaml
     apiVersion: v1 # 쿠버네티스 API 버전
@@ -82,7 +83,7 @@
     spec:
         containers: # 파드는 container를 정의해야 함
             - name: web
-            image: jm-hub/jm-server
+              image: jm-hub/jm-server
     ```
 - 매네페스트는 `선언적`
     - 일일이 지시하는 명령형과 달리 최종 결과가 어떻게 되어야 하는지 알려줌
@@ -93,16 +94,13 @@
     ```yaml
     apiVersion: apps/v1
     kind: Deployment
-
     metadata:
         name: jm-server
-
     spec:
         # pod를 찾을 때 사용
         selector:
             matchLabels: # 셀렉터 유형은 이거 말고도 더 있음
                 app: jm-server # 이 레이블이랑 일치하는 리소스를 관리한다.
-
         # pod를 만들 때 사용
         template:
             metadata:

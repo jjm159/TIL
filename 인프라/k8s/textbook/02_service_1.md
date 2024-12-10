@@ -148,8 +148,9 @@ spec:
             app: jm-web # 이 레이블을 가진 pod에 트래픽 전달
         type: NodePort # type
     ```
-- port 필드의 차이 
-    - 로드밸런서 유형에서는 외부와 내부 모두에서 접근할 때 사용되는 포트
+- __LoadBalancer와 NodePort에서 port 필드의 차이__
+    - port는 서비스 객체의 port
+    - 로드밸런서 유형에서는 외부와 내부 모두에서 접근할 때 사용
     - 노드포트 유형에서는 내부에서 접근할 때 사용되고, 외부에서 접근할 때에는 nodePort에 적힌 포트로 접근해야 함
 
 ## 외부로 트래픽 전달
@@ -176,7 +177,7 @@ spec:
   externalName: raw.githubusercontent.com
 ```
 - 내부 도메인 네임인 `jm-api`로 접근하면 쿠버의 dns는 `raw.githubusercontent.com`라는 `CNAME`을 반환
-    - CNAME이란? 
+    - `CNAME`이란? 
         - 한 도메인 네임을 다른 이름으로 매핑시키는 도메인 시스템의 리소스 레코드 중 하나
         - 도메인 네임 시스템은 진짜 리소스의 주소를 다른 이름으로 매핑해주고, 이 매핑된 이름으로 접근했을 때 진짜 주소를 반환해줌
         - 도메인 네임으로 접근했을 때 반환해주는 리소스의 이름의 종류가 여러개인데, 그 중 cname이 있음
@@ -184,46 +185,51 @@ spec:
         - 이런 경우를 CNAME이라고 함
 - 애플리케이션이 사용하는 주소가 가리키는 대상을 치환해줄 뿐, 요청 내용을 못 바꿈
     - TCP는 상관 없지만, HTTP 서비스는 문제
-    - 헤더에 대상 호스트명이 들어가는데, 헤더의 호스트명이 응답의 호스트네임과 다르면 HTTP 요청이 실패
+    - 헤더에 대상 호스트명이 들어가는데, __헤더의 호스트명이 응답의 호스트네임과 다르면 HTTP 요청이 실패__
     - HTTP 요청이 아니라면 ExternalName 굳굳
 
 - **`헤드리스 서비스(headless service)`**
-    - 마찬가지로 `도메인 네임` 대신 `IP 주소`를 대체해 주는 방법
-    - **클러스터 내부의 가상 IP로 대체**
-        - *서비스의 이름인 도메인 네임으로 내부 pod가 요청을 날리면, endpoint에 적힌 ip로 트래픽이 전달됨*
-    - 클러스터 IP 형태로 제공
-    - 레이블 셀렉터가 없음
-        - 대상 파드 없음
-    - IP 주소의 목록이 담긴 엔드포인트 리소스와 함께 배포
-- 메니페스트
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: jm-api
-spec:
-  # selector가 없음
-  # 대신에 Endpoints 리소스와 엮임
-  type: ClusterIP
-  ports:
-    - port: 80
----
-kind: Endpoints
-apiVersion: v1
-metadata:
-  name: jm-api
-subsets:
-  - addresses: # 정적 IP 주소 목록
-      - ip: 192.168.123.234 # jm-api로 접근하면 이 ip로 트래픽 전달
-    ports:
-      - port: 80 # 각 IP 주소에서 주시할 포트
-```
+    - **도메인 네임을 클러스터 내부의 가상 IP로 대체**
+    - `Service 리소스`를 생성해서 DNS에 도메인 등록
+        - Service에는 레이블 셀렉터가 없는데, 대상 파드가 없기 때문
+        - Service는 쿠버네티스 DNS 서버에 도메인을 등록하기 위해 사용
+    - `Endpoint 리소스`도 함께 배포
+        - 이 Endpoint의 name은 Service의 name과 같아야 함
+        - Endpoint는 IP 주소 목록을 가짐
+        - 참고로, Endpoint 리소스는 selector가 있다면, 자동으로 생성되는 건데, selector가 없으면 수동으로 추가해줘야 함
+    - __트래픽 전달 과정__
+        - 서비스 이름인 도메인 네임으로 내부 pod에 있는 애플리케이션이 요청을 날림
+        - service에 `selector가 없기 때문에` 자동으로 리소스 name이 jm-api라는 `Endpoint를 찾음`
+        - Endpoint에 적힌 ip로 트래픽을 라우팅함
+    - 메니페스트
+    ```yaml
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: jm-api
+    spec:
+      # selector가 없음
+      # 대신에 Endpoints 리소스와 엮임
+      type: ClusterIP
+      ports:
+        - port: 80
+    ---
+    kind: Endpoints
+    apiVersion: v1
+    metadata:
+      name: jm-api
+    subsets:
+      - addresses: # 정적 IP 주소 목록 - 외부 또는 내부 아이피 명시
+            - ip: 192.168.123.234 # jm-api로 접근하면 이 ip로 트래픽 전달
+        ports:
+            - port: 80 # 각 IP 주소에서 주시할 포트
+    ```
 
 ## 서비스의 해소 과정
 - 내부 동작
     - Pod에서 나오는 `모든 통신`은 쿠버네티스의 구성 요소 중 하나인 `네트워크 프록시`가 라우팅을 담당
     - 이 프록시는,
-        - 각 노드에서 동작
+        - 각 `노드`에서 동작
         - 모든 서비스의 엔드포인트에 대한 최신 정보 유지
             - __서비스의 엔드포인트를 설정하는 방법__
                 - `label selector`
@@ -233,10 +239,10 @@ subsets:
                         - 외부일수도 있고 내부일수도 있음
                 - `externalName`
                     - 외부 도메인 네임이 엔드포인트
-        - 네트워크 패킷 필터(구현체는 플랫폼마다 다름, 리눅스는 IPVS 또는 iptables)를 사용하여 트래픽을 라우팅
+        - `네트워크 패킷 필터`(구현체는 플랫폼마다 다름, 리눅스는 `IPVS` 또는 `iptables`)를 사용하여 트래픽을 `라우팅`
 - __`ClusterIP`__ 는 네트워크상에 실재하지 않는 __`가상 IP 주소`__ 임
-    - 모든 통신은 프록시를 통함
-    - __ClusterIP로 접근하면 프록시를 통해서 실제 엔드포인트로 연결 됨__
+    - 모든 통신은 `프록시`를 통함
+    - __ClusterIP로 접근하면 `프록시를 통해서` 실제 엔드포인트로 연결 됨__
         - 여기서 엔드포인트는 외부일 수도 있고, 내부 일수도 있음
     - 서비스 컨트롤러
         - 파드가 변경되어 엔드포인트가 바뀌면, 컨트롤러가 네트워크 프록시의 엔드포인트 목록을 바꿔준다.
