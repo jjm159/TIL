@@ -1,0 +1,19 @@
+# 미니 프로젝트 흐름 정리
+
+## 키워드
+- CSR과 SSR
+- JWT
+- 회원 관리
+
+## 아이디어
+- 정글러 github commit 수를 시각화
+- github OAuth 사용해서 로그인
+
+## 배운거
+- CSR과 SSR 차이
+- JWT 원리
+- OAuth
+- 파이썬 웹개발
+- 파이썬 비동기 배치 처리
+- 몽고 DB
+- graph ql apu 맛보기
