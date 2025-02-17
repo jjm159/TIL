@@ -85,7 +85,8 @@
     - `recent_cpu`
         - cpu time의 추정값 that 스레드가 최근에 사용한!
         - 이 값이 높을 수록 우선순위가 낮아진다.
-        - cpu를 덜 사용하는 녀석을 빠르게 실행하고 끝내는게 모든 스레드에 대한 반응 속도를 높이는 길!
+        - _핵심!!!_ 
+            - cpu를 덜 사용하는 녀석을 빠르게 실행하고 끝내는게 모든 스레드에 대한 반응 속도를 높이는 길!
     - `nice`
         - thread가 가지고 있는 nice value
     - result
@@ -93,7 +94,7 @@
     - 1/4, 1/2
         - 는 믿고 쓰면 됨!
 - 공식 효과
-    - cpu를 최근에 사용한 스레드에가 낮은 우선순위를 준다.
+    - cpu를 최근에 사용한 스레드에 낮은 우선순위를 준다.
     - 이게 starvation을 방지해준다.
 
 ### Calculating `recent_cpu`
@@ -138,7 +139,6 @@ load_avg = (59/60) * load_avg + (1/60) * ready_threads
     - 유휴 스레드 포함 X
 - timer_tikcs() % TIMER_FREQ == 0 일 때만 업데이트
 
-### Summary
 
 ### Fixed-Point Real Arithmetic
 - 요게 관건..!
@@ -147,3 +147,12 @@ load_avg = (59/60) * load_avg + (1/60) * ready_threads
 - 위 공식들을 고정 소수점 연산으로 계산하는게 이번 과제의 핵심
 
 ---
+
+## Summary
+- Pintos에서 MLFQ는 우선순위 기반 스케줄링을 동적으로 조정하는 방식
+    - CPU를 많이 사용하면 낮은 우선순위로 이동, 적게 사용하면 높은 우선순위 유지
+    - priority, recent_cpu, load_avg 값이 주기적으로 업데이트
+    - 4tick 마다 priority 업데이트, 1초마다 recent_cpu 및 load_avg 조정
+    - starvation 방지를 위해 Aging 적용
+- 이 방식으로 짧게 실행되는 I/O 중심 스레드는 빠르게 실행
+- CPU를 독점하려는 스레드는 점점 우선순위가 낮아지면서 공정한 스케줄링 가능
