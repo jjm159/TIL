@@ -9,10 +9,27 @@
     - cd hello-go
 - Go 모듈 초기화
     - go mod init hello-go
+        - 이렇게 하면 go.mod라는 파일이 프로젝트 루트 경로에 생성됨.
+        ```go
+        module hello-go
+
+        go 1.23.4
+        ```
 - Go 모듈 가져오기
     - go mod tidy
 - Go 실행
     - go run .
+        - 이거 할 때 main 함수가 있는 파일은 main package로 지정해줘야 함
+        ```go
+        package main
+
+        import "fmt"
+
+        func main() {
+            fmt.Print("hello")
+        }
+
+        ```
 - Go 빌드
     - go build
 - Go test
