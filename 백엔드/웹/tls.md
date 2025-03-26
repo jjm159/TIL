@@ -73,18 +73,18 @@
 ## 인증서 서명 검증
 - 서명 생성 과정 (CA가 서명할 때)
     - CA가 인증서의 특정 데이터(주로 TBSCertificate, “To Be Signed Certificate”)를 해싱(Hashing)
-        - 예: SHA-256(인증서 데이터) = 해시값(H)
+        - 예: `SHA-256(인증서 데이터) = H(해시값)`
     - CA가 자신의 개인키(Private Key)로 해시값(H)을 암호화 (즉, 서명)
-        - 서명 값 = Encrypt(H, CA의 Private Key)
+        - `서명 값 = Encrypt(H, CA의 Private Key)`
     - 서명 값(Signature)을 인증서의 일부로 포함하여 서버에 발급
 - 서명 검증 과정 (클라이언트가 검증할 때)
     - 인증서에서 서명 값(Signature)과 CA의 공개키(Public Key)를 가져옴
     - 서명 값(Signature)을 CA의 공개키로 복호화
-        - Decrypted_H = Decrypt(서명 값, CA의 Public Key)
+        - `Decrypted_H = Decrypt(서명 값, CA의 Public Key)`
         - 여기서 나온 값이 원래 CA가 서명할 때 사용했던 **해시값(H)**이어야 함.
     - 인증서에서 서명된 데이터를 직접 해시(Hash)하여 비교
-        - Calculated_H = SHA-256(인증서 데이터)
-        - Decrypted_H와 Calculated_H가 일치하면 서명이 유효함
+        - `Calculated_H = SHA-256(인증서 데이터)`
+        - `Decrypted_H`와 `Calculated_H`가 일치하면 서명이 유효함
 - 서명 값은 CA의 개인키로 “해시값”을 암호화한 것이고,
     - 이를 검증할 때 CA의 공개키로 복호화하여 원본 해시값과 비교하는 과정이 수행
         - 브라우저는 미리 신뢰할 수 있는 CA(인증기관) 리스트를 가지고 있고 여기에 public key도 포함됨
