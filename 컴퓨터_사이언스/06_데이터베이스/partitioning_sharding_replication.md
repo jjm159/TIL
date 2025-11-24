@@ -71,7 +71,7 @@
 - horizontal partitioning으로 나눈 각 테이블들을 다른 서버에 저장한 것
 - __DB 서버의 부하를 분산시킴!!!__
 - 이 때의 partition key를 `shard key` 라고 함
-- 이 때의 각 partiton을 shard라고 함
+- 이 때의 각 partiton을 `shard`라고 함
 
 ## replication 복제
 - 주 DB 서버, 이를 복사해서 유지하는 보조 DB 서버를 둠
@@ -82,10 +82,11 @@
     - copy해서 유지하는 서버
     - 여러 대 있을 수 있음
 - 장점
-    - __고가용성!!!__
-        - HA - High availability
+    - __고가용성 제공__
+        - HA - High availability - 가용성이 높음!
         - master에 문제 생겼을 때 slave로 바로 바꿔치기
-        - 이를 `failover` 라고 함
+            - 이를 `Failover` 라고 함
+            - 시스템에 이상이 생겼을 때 예비 시스템으로 자동전환되는 기능
     - __서버 부하(load)를 낮춘다__
         - read 트래픽을 slave로 분산
         - master의 부하를 낮춤
